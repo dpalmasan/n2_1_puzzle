@@ -179,6 +179,6 @@ def animate_plan(puzzle, plan):
     draw_puzzle(puzzle)
     for action in plan:
         clear_output()
-        time.sleep(0.2)
+        time.sleep(0.1)
         puzzle.move(action)
         draw_puzzle(puzzle)

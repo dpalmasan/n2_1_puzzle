@@ -1,37 +1,31 @@
-from typing import List, Optional
+from n2_puzzle.greedy import process_column, process_row
+from n2_puzzle.puzzle import NPuzzle, animate_plan, generate_template_board
+from n2_puzzle.search import State, a_star_puzzle
 
-from n2_puzzle.puzzle import Direction, NPuzzle
 
+def solve_puzzle(puzzle: NPuzzle):
+    n = puzzle.n
+    for i in range(n):
+        if n == 3:
+            break
+        it = i
+        jt = i
+        start_value = jt * puzzle.n + jt + 1
+        process_row(puzzle, it, start_value)
+        process_column(puzzle, jt, start_value)
+        n -= 1
 
-class State:
-    def __init__(
-        self,
-        puzzle: NPuzzle,
-        action: Optional[Direction] = None,
-        parent: Optional["State"] = None,
-        depth: int = 0,
-    ):
-        self.puzzle = puzzle
-        self.action = action
-        self.parent = parent
-        self.depth = depth
+    # Extract sub-puzzle to solve
+    puzzle_init_state = []
+    for row in puzzle.board[-3:]:
+        puzzle_init_state.append(row[-3:])
+    init_state = State(NPuzzle(puzzle_init_state))
+    puzzle_goal = generate_template_board(puzzle.n, is_goal=True)
+    puzzle_goal_reduced = []
 
-    def neighbors(self) -> List["State"]:
-        neighbors = []
-        for dir in Direction:
-            board = [list(row) for row in self.puzzle.board]
-            new_puzzle = NPuzzle(board)
-            if new_puzzle.move(dir):
-                neighbors.append(State(new_puzzle, dir, self, self.depth + 1))
-        return neighbors
-
-    def __repr__(self) -> str:
-        return repr(self.puzzle)
-
-    def __eq__(self, other: object) -> bool:
-        if not isinstance(other, State):
-            raise NotImplementedError("Other object must be a State object")
-        return self.puzzle == other.puzzle
-
-    def __hash__(self) -> int:
-        return hash(self.puzzle)
+    # Create the goal state
+    for row in puzzle_goal[-3:]:
+        puzzle_goal_reduced.append(row[-3:])
+    goal_state = State(NPuzzle(puzzle_goal_reduced))
+    plan = a_star_puzzle(init_state, goal_state)
+    animate_plan(puzzle, plan)

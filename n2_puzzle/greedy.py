@@ -200,6 +200,32 @@ def has_to_move_right(puzzle: NPuzzle, j: int, jt: int) -> bool:
     return j < jt or j == jt and jt == puzzle.n - 1
 
 
+def move_left_down_row(
+    puzzle: NPuzzle, target: int, it: int, jt: int, left_limit: int, up_limit: int
+) -> None:
+    """
+    This is used for the cases in which the target tile is
+    on the last column. It assumes the blank tile will be
+    on the left
+    """
+    i, j = puzzle.tile_pos[target]
+    plan = [
+        Direction.DOWN,
+        Direction.LEFT,
+        Direction.LEFT,
+        Direction.UP,
+        Direction.RIGHT,
+    ]
+    for action in plan:
+        i0, j0 = puzzle.tile_pos[0]
+        if invalid_action(puzzle, i0, j0, action, left_limit, up_limit):
+            break
+        animate_plan(puzzle, [action])
+        i, j = puzzle.tile_pos[target]
+        if (i, j) == (it, jt):
+            break
+
+
 def move_target_tile_to_row_left(
     puzzle: NPuzzle, target: int, it: int, jt: int, left_limit: int, up_limit: int
 ) -> None:
@@ -213,6 +239,8 @@ def move_target_tile_to_row_left(
     while (i, j) != (it, jt):
         if j == jt:
             move_up_left(puzzle, target, it, jt, left_limit, up_limit)
+        elif i == it:
+            move_left_down_row(puzzle, target, it, jt, left_limit, up_limit)
         else:
             move_diagonally_left(puzzle, target, it, jt, left_limit, up_limit)
         i, j = puzzle.tile_pos[target]
@@ -385,6 +413,31 @@ def move_blank_to_target_down(
         animate_plan(puzzle, [Direction.DOWN])
 
 
+def prevent_disturbing_row(puzzle, tile, i, j):
+    """
+    This fix cases in which we want to place a target tile and
+    the tile target + 1 is already in place. We move the target + 1
+    out of its position to avoid disturbing it while moving target
+    """
+    pos = puzzle.tile_pos[tile]
+    # Case in which the last tile is already in its position
+    # We need to take it out of it so we can move the previous
+    # tile to position N without disturbing the row
+    if pos == (i, j):
+        move_blank_to_target_down(puzzle, tile, i, j)
+        animate_plan(
+            puzzle,
+            [
+                Direction.UP,
+                Direction.LEFT,
+                Direction.DOWN,
+                Direction.DOWN,
+                Direction.RIGHT,
+                Direction.UP,
+            ],
+        )
+
+
 def process_row(puzzle: NPuzzle, it: int, start_value: int) -> None:
     """Complete a row.
 
@@ -422,26 +475,14 @@ def process_row(puzzle: NPuzzle, it: int, start_value: int) -> None:
         if target_tile == puzzle.n * (it + 1) - 1:
             jt = puzzle.n - 1
             last = puzzle.n * (it + 1)
-            pos = puzzle.tile_pos[last]
-            # Case in which the last tile is already in its position
-            # We need to take it out of it so we can move the previous
-            # tile to position N without disturbing the row
-            if pos == (it, jt):
-                move_blank_to_target_down(puzzle, last, it, jt)
-                animate_plan(
-                    puzzle,
-                    [
-                        Direction.UP,
-                        Direction.LEFT,
-                        Direction.DOWN,
-                        Direction.DOWN,
-                        Direction.RIGHT,
-                        Direction.UP,
-                    ],
-                )
-
+            prevent_disturbing_row(puzzle, last, it, jt)
         elif target_tile == puzzle.n * (it + 1):
             it = it + 1
+        else:
+            if target_tile + 1 in puzzle.tile_pos:
+                (ii, jj) = puzzle.tile_pos[target_tile + 1]
+                if (ii, jj) == (it, jt + 1):
+                    prevent_disturbing_row(puzzle, target_tile + 1, it, jt + 1)
         move_blank_to_target(puzzle, target_tile, it, jt)
         # Target position is on the left side
         if has_to_move_right(puzzle, j, jt):
@@ -454,3 +495,254 @@ def process_row(puzzle: NPuzzle, it: int, start_value: int) -> None:
             )
         target_tile += 1
     complete_row(puzzle)
+
+
+def move_diagonally_down(
+    puzzle: NPuzzle, target: int, it: int, jt: int, left_limit: int, up_limit: int
+) -> None:
+    """
+    Moves the target tile diagonally up left. It assumes that the
+    blank tile is down the target tile
+    """
+    plan = [
+        Direction.UP,
+        Direction.LEFT,
+        Direction.DOWN,
+        Direction.RIGHT,
+        Direction.DOWN,
+        Direction.LEFT,
+    ]
+
+    for action in plan:
+        i0, j0 = puzzle.tile_pos[0]
+        if invalid_action(puzzle, i0, j0, action, up_limit, left_limit):
+            break
+        animate_plan(puzzle, [action])
+        i, j = puzzle.tile_pos[target]
+        if (i, j) == (it, jt):
+            break
+
+
+def move_left_up(
+    puzzle: NPuzzle, target: int, it: int, jt: int, left_limit: int, up_limit: int
+) -> None:
+    """
+    Used for the cases in which the target is in the last row.
+    Assumes that the blank is on top of the target
+    """
+    i, j = puzzle.tile_pos[target]
+    plan = [
+        Direction.LEFT,
+        Direction.DOWN,
+        Direction.RIGHT,
+        Direction.UP,
+        Direction.LEFT,
+    ]
+    for action in plan:
+        i0, j0 = puzzle.tile_pos[0]
+        if invalid_action(puzzle, i0, j0, action, up_limit, left_limit):
+            break
+        animate_plan(puzzle, [action])
+        i, j = puzzle.tile_pos[target]
+        if (i, j) == (it, jt):
+            break
+
+
+def move_diagonally_up(
+    puzzle: NPuzzle, target: int, it: int, jt: int, left_limit: int, up_limit: int
+) -> None:
+    """
+    Moves the target tile diagonally up. It assumes that the
+    blank tile is on the down of the target tile
+    """
+    i0, j0 = puzzle.tile_pos[0]
+    plan = [
+        Direction.LEFT,
+        Direction.UP,
+        Direction.RIGHT,
+        Direction.UP,
+        Direction.LEFT,
+        Direction.DOWN,
+    ]
+
+    for action in plan:
+        i0, j0 = puzzle.tile_pos[0]
+        if invalid_action(puzzle, i0, j0, action, up_limit, left_limit):
+            break
+        animate_plan(puzzle, [action])
+        i, j = puzzle.tile_pos[target]
+        i0, j0 = puzzle.tile_pos[0]
+        if (i, j) == (it, jt):
+            break
+
+
+def move_left_down(
+    puzzle: NPuzzle, target: int, it: int, jt: int, left_limit: int, up_limit: int
+) -> None:
+    """
+    This moves the target tile to the left rotating down the tile
+    to avoid touching the upper row (might be the already sorted one).
+    Assumes the blank is down the target
+    """
+    i, j = puzzle.tile_pos[target]
+    plan = [
+        Direction.LEFT,
+        Direction.UP,
+        Direction.RIGHT,
+        Direction.DOWN,
+        Direction.LEFT,
+    ]
+    for action in plan:
+        i0, j0 = puzzle.tile_pos[0]
+        if invalid_action(puzzle, i0, j0, action, up_limit, left_limit):
+            break
+        animate_plan(puzzle, [action])
+        i, j = puzzle.tile_pos[target]
+        if (i, j) == (it, jt):
+            break
+
+
+def has_to_move_down(puzzle: NPuzzle, i: int, it: int):
+    """
+    We move up if target position is on the above
+    of the i
+    """
+    return i < it or i == it and it == puzzle.n - 1
+
+
+def move_up_by_right(
+    puzzle: NPuzzle, target: int, it: int, jt: int, left_limit: int, up_limit: int
+) -> None:
+    """
+    Assumes blank is below the target and that the target it is already
+    placed in the target column
+    """
+    i, j = puzzle.tile_pos[target]
+    plan = [
+        Direction.RIGHT,
+        Direction.UP,
+        Direction.UP,
+        Direction.LEFT,
+        Direction.DOWN,
+    ]
+    for action in plan:
+        i0, j0 = puzzle.tile_pos[0]
+        if invalid_action(puzzle, i0, j0, action, up_limit, left_limit):
+            break
+        animate_plan(puzzle, [action])
+        i, j = puzzle.tile_pos[target]
+        if (i, j) == (it, jt):
+            break
+
+
+def move_target_tile_to_column_up(
+    puzzle: NPuzzle, target: int, it: int, jt: int, left_limit: int, up_limit: int
+):
+    i0, j0 = puzzle.tile_pos[0]
+    i, j = puzzle.tile_pos[target]
+    while (i, j) != (it, jt):
+        if i == it:
+            move_left_down(puzzle, target, it, jt, up_limit, left_limit)
+        elif j == jt:
+            move_up_by_right(puzzle, target, it, jt, up_limit, left_limit)
+        else:
+            move_diagonally_up(puzzle, target, it, jt, up_limit, left_limit)
+        i, j = puzzle.tile_pos[target]
+    i0, j0 = puzzle.tile_pos[0]
+
+    # For cases in which we move up the tile and end stuck in the
+    # Target column
+    if j0 == left_limit:
+        animate_plan(puzzle, [Direction.RIGHT])
+        if i0 > up_limit:
+            animate_plan(puzzle, [Direction.UP])
+
+
+def move_down(
+    puzzle: NPuzzle, target: int, it: int, jt: int, left_limit: int, up_limit: int
+):
+    i, j = puzzle.tile_pos[target]
+    plan = [
+        Direction.UP,
+        Direction.RIGHT,
+        Direction.DOWN,
+        Direction.DOWN,
+        Direction.LEFT,
+    ]
+    for action in plan:
+        i0, j0 = puzzle.tile_pos[0]
+        if invalid_action(puzzle, i0, j0, action, up_limit, left_limit):
+            break
+        animate_plan(puzzle, [action])
+        i, j = puzzle.tile_pos[target]
+        if (i, j) == (it, jt):
+            break
+
+
+def move_target_tile_to_column_down(
+    puzzle: NPuzzle, target: int, it: int, jt: int, left_limit: int, up_limit: int
+):
+    i0, j0 = puzzle.tile_pos[0]
+    i, j = puzzle.tile_pos[target]
+    while (i, j) != (it, jt):
+        if i == puzzle.n - 1 == it:
+            move_left_up(puzzle, target, it, jt, up_limit, left_limit)
+        elif i == it:
+            move_left_down(puzzle, target, it, jt, up_limit, left_limit)
+        elif j == jt or (j == jt + 1 and it > i + 1):
+            move_down(puzzle, target, it, jt, up_limit, left_limit)
+            # Case in which I moved the target tile just one step down
+            # and the goal is puzzle.n - 1
+            i, j = puzzle.tile_pos[target]
+            if i == puzzle.n - 1:
+                animate_plan(puzzle, [Direction.RIGHT, Direction.DOWN])
+        else:
+            move_diagonally_down(puzzle, target, it, jt, up_limit, left_limit)
+            i, j = puzzle.tile_pos[target]
+            # If it is at the end of the row but it is not the last tile
+            # to move
+            if it == i == puzzle.n - 1:
+                animate_plan(puzzle, [Direction.UP, Direction.LEFT])
+        i, j = puzzle.tile_pos[target]
+        i0, j0 = puzzle.tile_pos[0]
+
+    # Case in which we moved diagonally down the second to last
+    # tile to the last row
+    if it == puzzle.n - 1 == i0 + 1:
+        animate_plan(puzzle, [Direction.RIGHT, Direction.DOWN])
+
+
+def complete_column(puzzle: NPuzzle):
+    plan = [
+        Direction.UP,
+        Direction.LEFT,
+        Direction.LEFT,
+        Direction.DOWN,
+        Direction.RIGHT,
+    ]
+    for action in plan:
+        animate_plan(puzzle, [action])
+
+
+def process_column(puzzle: NPuzzle, jt: int, start_value: int):
+    target_tile = start_value + puzzle.n
+    up_limit, left_limit = jt, jt
+    for it in range(jt + 1, puzzle.n):
+        i, j = puzzle.tile_pos[target_tile]
+        if target_tile == 1 + puzzle.n * (puzzle.n - 1) + jt:
+            jt = jt + 1
+        elif target_tile == 1 + puzzle.n * (puzzle.n - 2) + jt:
+            it = puzzle.n - 1
+
+        move_blank_to_target_down(puzzle, target_tile, it, jt)
+        # Target position is on the bottom side
+        if has_to_move_down(puzzle, i, it):
+            move_target_tile_to_column_down(
+                puzzle, target_tile, it, jt, up_limit, left_limit
+            )
+        else:
+            move_target_tile_to_column_up(
+                puzzle, target_tile, it, jt, up_limit, left_limit
+            )
+        target_tile += puzzle.n
+    complete_column(puzzle)
