@@ -4,7 +4,7 @@ target-version = ['py38', 'py39']
 include = '\.pyi?$'
 
 [tool.poetry]
-name = "n2-1-puzzle"
+name = "n2_puzzle"
 version = "0.1.0"
 description = "A python implementation of n*2 puzzle and solvers"
 authors = ["Your Name <you@example.com>"]
