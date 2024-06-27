@@ -1,13 +1,12 @@
-from n2_puzzle.puzzle import NPuzzle, animate_plan, generate_template_board
-from n2_puzzle.search import State, a_star_puzzle
+# from n2_puzzle.search import State, a_star_puzzle
+from n2_puzzle.greedy import process_row
+from n2_puzzle.puzzle import NPuzzle, generate_template_board
 
 
 def main():
-    board = generate_template_board(3)
+    board = generate_template_board(4)
     puzzle = NPuzzle(board)
-    goal = NPuzzle(generate_template_board(3, is_goal=True))
-    plan = a_star_puzzle(State(puzzle), State(goal))
-    animate_plan(puzzle, plan)
+    process_row(puzzle, 0, 1)
 
 
 if __name__ == "__main__":
