@@ -1,5 +1,18 @@
-from typing import List, Dict, Tuple
+import time
 from enum import Enum
+from typing import Dict, List, Tuple
+
+
+class bcolors:
+    HEADER = "\033[95m"
+    OKBLUE = "\033[94m"
+    OKCYAN = "\033[96m"
+    OKGREEN = "\033[92m"
+    WARNING = "\033[93m"
+    FAIL = "\033[91m"
+    ENDC = "\033[0m"
+    BOLD = "\033[1m"
+    UNDERLINE = "\033[4m"
 
 
 class Direction(Enum):
@@ -134,3 +147,38 @@ class NPuzzle:
         if not isinstance(other, NPuzzle):
             raise NotImplementedError("Other object must be an NPuzzle object")
         return all(row1 == row2 for row1, row2 in zip(self.board, other.board))
+
+
+def draw_puzzle(puzzle) -> None:
+    s = ""
+    line = "----" * puzzle.n + "-\n"
+    s += line
+    for row in puzzle.board:
+        s += "|"
+        for col in row:
+            if col:
+                i, j = puzzle.tile_pos[col]
+                array_index = i * puzzle.n + j
+                if col == array_index + 1:
+                    col_str = f"{bcolors.OKGREEN}{col: >3}{bcolors.ENDC}"
+                else:
+                    col_str = f"{col: >3}"
+                s += col_str + "|"
+            else:
+                s += f"{' ': >3}" + "|"
+        s += "\n" + line
+    print(s)
+
+
+def clear_output():
+    print("\033c", end="")
+
+
+def animate_plan(puzzle, plan):
+    clear_output()
+    draw_puzzle(puzzle)
+    for action in plan:
+        clear_output()
+        time.sleep(0.2)
+        puzzle.move(action)
+        draw_puzzle(puzzle)
