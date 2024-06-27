@@ -1,10 +1,13 @@
 from typing import List, Dict, Tuple
+from enum import Enum
+
 
 class Direction(Enum):
     UP = 0
     DOWN = 1
     LEFT = 2
     RIGHT = 3
+
 
 class NPuzzle:
     def __init__(self, board: List[List[int]], is_goal: bool = False) -> None:
@@ -24,7 +27,7 @@ class NPuzzle:
 
     def move(self, dir: Direction) -> bool:
         """Move the blank tile given a direction
-        
+
         In the case of a valid move, the blank tile is moved
         to the new position, and the tile at the new position
         is moved to the old position. If the move is invalid,
@@ -45,13 +48,15 @@ class NPuzzle:
         self.tile_pos[0] = (i, j)
         self.tile_pos[tile] = (zero_i, zero_j)
         self.board[i][j], self.board[zero_i][zero_j] = (
-        self.board[zero_i][zero_j], self.board[i][j])
+            self.board[zero_i][zero_j],
+            self.board[i][j],
+        )
         return True
 
     def __str__(self) -> str:
         """String representation of the board"""
         s = ""
-        line = "----"*self.n +  "-\n"
+        line = "----" * self.n + "-\n"
         s += line
         for row in self.board:
             s += "|"
@@ -72,9 +77,8 @@ class NPuzzle:
         """Hash function for the board"""
         return hash(str(self))
 
-    def __eq__(self, other: "NPuzzle") -> bool:
+    def __eq__(self, other: object) -> bool:
         """Equality function for the board"""
-        for row1, row2 in zip(self.board, other.board):
-            if row1 != row2:
-                return False
-        return True
+        if not isinstance(other, NPuzzle):
+            raise NotImplementedError("Other object must be an NPuzzle object")
+        return all(row1 == row2 for row1, row2 in zip(self.board, other.board))
