@@ -1,6 +1,6 @@
-# $N^2 - 1$ Puzzle Solver
+# $N^2 - 1$ Sliding Puzzle Solver
 
-The generalization of the classical fifteen puzzle (15-puzzle) or eigth puzzle (8-puzzle). This repository implements an $N^2 - 1$ puzzle interface as well as a solver based on the paper [A Real-Time Algorithm for the $(N^2 − 1)-Puzzle$](https://ianparberry.com/pubs/saml.pdf).
+The generalization of the classical fifteen puzzle (15-puzzle) or eigth sliding puzzle (8-puzzle). This repository implements an $N^2 - 1$ puzzle interface as well as a solver based on the paper [A Real-Time Algorithm for the $(N^2 − 1)-Puzzle$](https://ianparberry.com/pubs/saml.pdf).
 
 The algorithm in simple terms, moves each row and column tiles 1 by 1 to their target locations, and does this iteratively, until we end up with a 3x3 grid. At this point we apply A* (A-star) algorithm and solve the rest of the puzzle.
 
