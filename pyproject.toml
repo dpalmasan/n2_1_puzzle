@@ -2,6 +2,9 @@
 line-length = 88
 include = '\.pyi?$'
 
+[tool.isort]
+profile = "black"
+
 [tool.poetry]
 name = "n2_puzzle"
 version = "0.1.0"
