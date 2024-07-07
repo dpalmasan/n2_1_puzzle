@@ -5,10 +5,14 @@ The generalization of the classical fifteen puzzle (15-puzzle) or eigth sliding 
 The algorithm in simple terms, moves each row and column tiles 1 by 1 to their target locations, and does this iteratively, until we end up with a 3x3 grid. At this point we apply A* (A-star) algorithm and solve the rest of the puzzle.
 
 
-To run:
+To play the game:
 
 1. Run `poetry install`
-2. `poetry run python main.py --n 5`
+2. `poetry run main --n 5`
+
+If you want the puzzle to be solved automatically, input `god` when playing the game!
+
+Example of the `GOD_MODE`:
 
 ![15-puzzle](https://gist.githubusercontent.com/dpalmasan/103d61ae06cfd3e7dee7888b391c1792/raw/02ce9febfa07ad7dcc4e801baa07722d781d6bb2/15-puzzle.gif)
 
